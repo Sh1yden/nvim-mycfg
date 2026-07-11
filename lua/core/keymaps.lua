@@ -7,7 +7,17 @@ keymap.set("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Очистить по
 keymap.set("n", "<C-Tab>", ":bnext<CR>", { silent = true, desc = "Следующий файл" })
 keymap.set("n", "<C-S-Tab>", ":bprevious<CR>", { silent = true, desc = "Предыдущий файл" })
 keymap.set("n", "<leader>nf", ":enew<CR>", { silent = true, desc = "Новый пустой файл" })
-keymap.set("n", "<leader>w", ":bdelete<CR>", { silent = true, desc = "Закрыть файл" }) -- TODO если выходит ошибка несохранённого файла, дать выбор сохранить или выйти без сохранения!
+keymap.set("n", "<leader>w", function()
+  local current_buf = vim.api.nvim_get_current_buf()
+  local bufs = vim.fn.getbufinfo({ buflisted = 1 })
+  if #bufs <= 1 then
+    vim.cmd("enew")
+    vim.cmd("bd " .. current_buf)
+  else
+    vim.cmd("bprevious")
+    vim.cmd("bd " .. current_buf)
+  end
+end, { silent = true, desc = "Закрыть файл" })
 
 -- Explorer
 keymap.set("n", "<leader>b", ":Neotree toggle<CR>", { silent = true, desc = "Проводник файлов" })
@@ -56,7 +66,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
     -- Alt + Enter = Quick Fix
     keymap.set("n", "<M-CR>", vim.lsp.buf.code_action, opts)
-
   end,
 })
 

@@ -9,6 +9,15 @@ opt.number = true
 -- opt.relativenumber = true
 opt.cursorline = true
 
+opt.list = true -- invisible symbols
+opt.listchars = {
+    space = ".",
+    tab = "| ",
+    trail = "·",
+    nbsp = "⍽",
+}
+
+
 -- Tabs
 opt.tabstop = 4
 opt.shiftwidth = 4

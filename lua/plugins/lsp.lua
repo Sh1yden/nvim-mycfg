@@ -24,8 +24,9 @@ return {
 
       mason_lspconfig.setup({
         ensure_installed = servers,
-        automatic_enable = true, 
+        automatic_enable = true,
       })
+
     end,
   }
 }
