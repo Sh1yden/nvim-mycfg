@@ -17,6 +17,9 @@ opt.listchars = {
     nbsp = "⍽",
 }
 
+-- Font
+vim.o.guifont = "JetBrainsMono Nerd Font:h16"
+vim.opt.linespace = 8
 
 -- Tabs
 opt.tabstop = 4
@@ -29,11 +32,10 @@ opt.clipboard = "unnamedplus"
 
 -- Search
 opt.ignorecase = true -- test = Test, test itd.
-opt.smartcase = true -- Test = only Test.
+opt.smartcase = true  -- Test = only Test.
 
 -- File System and Memory
 opt.swapfile = false
 opt.undofile = true
 
 opt.updatetime = 250
-
