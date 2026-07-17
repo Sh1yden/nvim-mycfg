@@ -8,8 +8,10 @@ vim.g.mapleader = " "
 opt.number = true
 -- opt.relativenumber = true
 opt.cursorline = true
+opt.scrolloff = 8
+opt.signcolumn = "yes"
 
-opt.list = true -- invisible symbols
+opt.list = true
 opt.listchars = {
     space = ".",
     tab = "| ",
@@ -27,15 +29,21 @@ opt.shiftwidth = 4
 opt.expandtab = true
 opt.smartindent = true
 
+-- Splits
+opt.splitright = true
+opt.splitbelow = true
+
 -- Ctrl + V
 opt.clipboard = "unnamedplus"
 
 -- Search
-opt.ignorecase = true -- test = Test, test itd.
-opt.smartcase = true  -- Test = only Test.
+opt.ignorecase = true
+opt.smartcase = true
 
 -- File System and Memory
 opt.swapfile = false
 opt.undofile = true
 
 opt.updatetime = 250
+opt.termguicolors = true
+opt.wrap = false

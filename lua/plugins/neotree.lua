@@ -4,36 +4,50 @@ return {
         branch = "v3.x",
         dependencies = {
             "nvim-lua/plenary.nvim",
-            "nvim-tree/nvim-web-devicons", -- Иконки файлов
+            "nvim-tree/nvim-web-devicons",
             "MunifTanjim/nui.nvim",
         },
         config = function()
             local neotree = require("neo-tree")
 
             neotree.setup({
-                close_if_last_window = true, -- Закрывать Neovim, если на экране остался только проводник
+                close_if_last_window = true,
+                enable_git_status = true,
+                enable_diagnostics = true,
                 filesystem = {
                     filtered_items = {
-                        visible = true, -- Показывать скрытые файлы (например, .gitignore, файлы настроек)
+                        visible = true,
                         show_hidden_count = true,
                     },
-                    follow_current_file = {
-                        enabled = true,            -- Автоматически подсвечивать открытый файл в дереве проводника
+                    follow_current_file = { enabled = true },
+                    use_libuv_file_watcher = true,
+                    group_empty_dirs = true,
+                },
+                git_status = {
+                    symbols = {
+                        added     = "✚",
+                        modified  = "",
+                        deleted   = "✖",
+                        renamed   = "",
+                        untracked = "",
+                        ignored   = "",
+                        unstaged  = "",
+                        staged    = "",
+                        conflict  = "",
                     },
-                    use_libuv_file_watcher = true, -- Следить за изменениями файлов на диске в реальном времени
                 },
                 window = {
-                    width = 30, -- Ширина боковой панели
+                    width = 30,
+                    position = "left",
                     mappings = {
-                        -- Встроенные горячие клавиши внутри панели проводника:
-                        -- "a" - Создать файл (если имя заканчивается на "/", создастся папка. Это заменяет и "a", и "shift+a"!)
-                        -- "d" - Удалить файл/папку
-                        -- "r" - Переименовать
-                        -- "c" - Скопировать (Copy)
-                        -- "x" - Вырезать (Cut)
-                        -- "p" - Вставить (Paste)
-                    }
-                }
+                        ["<space>"] = "none",
+                    },
+                },
+                indent = {
+                    indent_size = 2,
+                    padding = 1,
+                },
+                default_source = "filesystem",
             })
         end,
     }

@@ -1,12 +1,12 @@
 local keymap = vim.keymap
 
--- Clear Ligth Seacrh <Space> + n + h
-keymap.set("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Очистить подсветку поиска" })
+-- Clear search highlight
+keymap.set("n", "<leader>nh", ":nohlsearch<CR>", { desc = "Clear search highlight" })
 
--- Tabs
-keymap.set("n", "<C-Tab>", ":bnext<CR>", { silent = true, desc = "Следующий файл" })
-keymap.set("n", "<C-S-Tab>", ":bprevious<CR>", { silent = true, desc = "Предыдущий файл" })
-keymap.set("n", "<leader>nf", ":enew<CR>", { silent = true, desc = "Новый пустой файл" })
+-- Buffers
+keymap.set("n", "<C-Tab>", ":bnext<CR>", { silent = true, desc = "Next buffer" })
+keymap.set("n", "<C-S-Tab>", ":bprevious<CR>", { silent = true, desc = "Previous buffer" })
+keymap.set("n", "<leader>nf", ":enew<CR>", { silent = true, desc = "New file" })
 keymap.set("n", "<leader>w", function()
     local current_buf = vim.api.nvim_get_current_buf()
     local bufs = vim.fn.getbufinfo({ buflisted = 1 })
@@ -17,37 +17,34 @@ keymap.set("n", "<leader>w", function()
         vim.cmd("bprevious")
         vim.cmd("bd " .. current_buf)
     end
-end, { silent = true, desc = "Закрыть файл" })
+end, { silent = true, desc = "Close buffer" })
 
--- Explorer
-keymap.set("n", "<leader>b", ":Neotree toggle<CR>", { silent = true, desc = "Проводник файлов" })
+-- Explorer toggle
+keymap.set("n", "<leader>b", ":Neotree toggle<CR>", { silent = true, desc = "Toggle file tree" })
 
--- Focus Change
+-- Focus neo-tree / back to code
 keymap.set("n", "<leader>f", function()
     local current_win = vim.api.nvim_get_current_win()
     local current_buf = vim.api.nvim_win_get_buf(current_win)
-    local ft = vim.bo[current_buf].filetype -- Получаем тип текущего файла
+    local ft = vim.bo[current_buf].filetype
 
     if ft == "neo-tree" then
-        -- Если мы внутри проводника — возвращаемся в предыдущее окно с кодом
         vim.cmd("wincmd p")
     else
-        -- Если мы в коде — ищем, открыт ли проводник на экране
         local found = false
         for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
             local buf = vim.api.nvim_win_get_buf(win)
             if vim.bo[buf].filetype == "neo-tree" then
-                vim.api.nvim_set_current_win(win) -- Фокусируемся на найденном проводнике
+                vim.api.nvim_set_current_win(win)
                 found = true
                 break
             end
         end
-        -- Если проводник вообще закрыт — открываем его и фокусируемся
         if not found then
             vim.cmd("Neotree focus")
         end
     end
-end, { silent = true, desc = "Переключить фокус в проводник" })
+end, { silent = true, desc = "Toggle focus explorer/code" })
 
 -- Editor
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -69,48 +66,23 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end,
 })
 
--- fzf-Search
-keymap.set("n", "<leader>ff", "<cmd>FzfLua files<CR>", { silent = true, desc = "Поиск файлов по названию" })
-keymap.set("n", "<leader>fg", "<cmd>FzfLua live_grep<CR>", { silent = true, desc = "Поиск текста по всему проекту" })
-keymap.set("n", "<leader>fb", "<cmd>FzfLua buffers<CR>", { silent = true, desc = "Поиск по открытым вкладкам" })
+-- Fzf search
+keymap.set("n", "<leader>ff", "<cmd>FzfLua files<CR>", { silent = true, desc = "Find files" })
+keymap.set("n", "<leader>fg", "<cmd>FzfLua live_grep<CR>", { silent = true, desc = "Grep project" })
+keymap.set("n", "<leader>fb", "<cmd>FzfLua buffers<CR>", { silent = true, desc = "Find buffers" })
 
--- NeoVide
+-- NeoVide (Windows GUI)
 if vim.g.neovide then
-    -- Копирование на Ctrl + C в визуальном режиме выделения
-    vim.keymap.set("v", "<C-c>", '"+y', { silent = true, desc = "Копировать в Windows" })
-
-    -- Вставка на Ctrl + V во всех режимах
-    vim.keymap.set({ "n", "v" }, "<C-v>", '"+p', { silent = true, desc = "Вставить из Windows" })
-    vim.keymap.set({ "i", "c" }, "<C-v>", '<C-r>+', { silent = true, desc = "Вставить из Windows" })
-
-    -- Переносим режим "Визуального блока" (Visual Block) с Ctrl+V на Ctrl+Q
-    vim.keymap.set("n", "<C-q>", "<C-v>", { silent = true, desc = "Режим вертикального столбца" })
+    vim.keymap.set("v", "<C-c>", '"+y', { silent = true, desc = "Copy" })
+    vim.keymap.set({ "n", "v" }, "<C-v>", '"+p', { silent = true, desc = "Paste" })
+    vim.keymap.set({ "i", "c" }, "<C-v>", '<C-r>+', { silent = true, desc = "Paste" })
+    vim.keymap.set("n", "<C-q>", "<C-v>", { silent = true, desc = "Visual block mode" })
 end
 
--- Auto Lint
-vim.api.nvim_create_autocmd("BufWritePre", {
-    -- Список расширений файлов, для которых будет работать автоформат
-    pattern = {
-        "*.py",                   -- Python (Ruff)
-        "*.lua",                  -- Lua (lua_ls)
-        "*.js", "*.ts",           -- JavaScript / TypeScript (ts_ls)
-        "*.html", "*.css",        -- Web (html / cssls)
-        "*.cpp", "*.hpp", "*.ino" -- C++ / Arduino (clangd)
-    },
-    callback = function()
-        -- Запускаем нативное форматирование синхронно (async = false),
-        -- чтобы изменения успели примениться ДО того, как файл запишется на жесткий диск.
-        vim.lsp.buf.format({ async = false })
-    end,
-})
-
--- Trouble
--- Visible list trouble Space + x + x
-keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", { silent = true, desc = "Ошибки всего проекта" })
--- Show list errors Space + x + d
+-- Trouble diagnostics
+keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", { silent = true, desc = "Project diagnostics" })
 keymap.set("n", "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
-    { silent = true, desc = "Ошибки текущего файла" })
+    { silent = true, desc = "Buffer diagnostics" })
 
 -- Git
--- Show Git Space + G
-keymap.set("n", "<leader>g", "<cmd>LazyGit<CR>", { silent = true, desc = "Открыть LazyGit" })
+keymap.set("n", "<leader>g", "<cmd>LazyGit<CR>", { silent = true, desc = "Open LazyGit" })
