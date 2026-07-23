@@ -15,7 +15,9 @@ return {
       pcall(function()
         require("mason-nvim-dap").setup({
           automatic_installation = true,
-          ensure_installed = { "codelldb" },
+          -- debugpy отсутствовал — без него require("dap-python").setup("python3")
+          -- ниже не находит адаптер, и отладка Python просто не стартует
+          ensure_installed = { "codelldb", "debugpy" },
         })
       end)
 

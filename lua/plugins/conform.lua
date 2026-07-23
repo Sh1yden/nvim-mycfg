@@ -20,13 +20,17 @@ return {
           yaml = { "yamlfmt" },
           toml = { "taplo" },
           markdown = { "markdownlint" },
+          dockerfile = { "dockerfmt" },
           ["_"] = { "trim_whitespace" },
         },
         format_on_save = {
-          lsp_fallback = true,
+          -- Актуальное имя опции — lsp_fallback переименован в lsp_format
+          -- и принимает "prefer"/"fallback"/"never" (старое имя тихо
+          -- игнорировалось, поэтому фолбэк на LSP реально не работал).
+          lsp_format = "fallback",
           timeout_ms = 1000,
         },
-        notify_on_error = false,
+        notify_on_error = true,
       })
     end,
   },
