@@ -49,6 +49,20 @@ return {
                 },
                 default_source = "filesystem",
             })
+
+            -- neo-tree обновляет git-статус по событию "User FugitiveChanged",
+            -- которое шлёт только vim-fugitive. У тебя git — через lazygit,
+            -- он этого события не знает, поэтому статус в дереве не обновлялся
+            -- сам после stage/commit. Триггерим то же событие вручную,
+            -- как только закрывается терминал lazygit.
+            vim.api.nvim_create_autocmd("TermClose", {
+                pattern = "*lazygit*",
+                callback = function()
+                    require("neo-tree.events").fire_event(
+                        require("neo-tree.events").GIT_EVENT
+                    )
+                end,
+            })
         end,
     }
 }

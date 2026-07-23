@@ -8,6 +8,7 @@ return {
       "L3MON4D3/LuaSnip",
       "saadparwaiz1/cmp_luasnip",
       "rafamadriz/friendly-snippets",
+      "zbirenbaum/copilot-cmp",
     },
     config = function()
       local cmp = require("cmp")
@@ -30,11 +31,15 @@ return {
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
         }),
 
+        -- group_index=2 у copilot и nvim_lsp — они в одной "лиге" и сортируются
+        -- между собой по релевантности; group_index=3 (buffer) идёт только
+        -- если из первой группы вообще ничего не нашлось.
         sources = cmp.config.sources({
-          { name = "nvim_lsp" },
-          { name = "luasnip" },
-          { name = "path" },
-          { name = "buffer" },
+          { name = "copilot",  group_index = 2 },
+          { name = "nvim_lsp", group_index = 2 },
+          { name = "luasnip",  group_index = 2 },
+          { name = "path",     group_index = 2 },
+          { name = "buffer",   group_index = 3 },
         }),
       })
     end,
