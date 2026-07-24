@@ -1,0 +1,336 @@
+
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/flash.lua nvim-mycfg/lua/plugins/flash.lua
+--- nvim-mycfg-orig4/lua/plugins/flash.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/flash.lua	2026-07-24 20:33:54.181071521 +0000
+@@ -0,0 +1,12 @@
++return {
++  {
++    "folke/flash.nvim",
++    event = "VeryLazy",
++    opts = {},
++    keys = {
++      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash: прыжок" },
++      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash: по treesitter-узлам" },
++      { "r", mode = "o", function() require("flash").remote() end, desc = "Flash: remote-действие" },
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/lint.lua nvim-mycfg/lua/plugins/lint.lua
+--- nvim-mycfg-orig4/lua/plugins/lint.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/lint.lua	2026-07-24 20:33:54.179196306 +0000
+@@ -0,0 +1,23 @@
++return {
++  {
++    "mfussenegger/nvim-lint",
++    event = { "BufReadPost", "BufWritePost", "BufNewFile" },
++    config = function()
++      local lint = require("lint")
++
++      lint.linters_by_ft = {
++        dockerfile = { "hadolint" },
++        sh = { "shellcheck" },
++        bash = { "shellcheck" },
++        -- python не добавляю: ruff уже даёт и линт, и формат через LSP,
++        -- дублировать через nvim-lint смысла нет
++      }
++
++      vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
++        callback = function()
++          lint.try_lint()
++        end,
++      })
++    end,
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/lsp.lua nvim-mycfg/lua/plugins/lsp.lua
+--- nvim-mycfg-orig4/lua/plugins/lsp.lua	2026-07-24 21:02:38.332936152 +0000
++++ nvim-mycfg/lua/plugins/lsp.lua	2026-07-24 20:34:19.887797349 +0000
+@@ -5,6 +5,8 @@
+       "williamboman/mason-lspconfig.nvim",
+       "neovim/nvim-lspconfig",
+       "hrsh7th/cmp-nvim-lsp",
++      "b0o/schemastore.nvim",
++      "WhoIsSethDaniel/mason-tool-installer.nvim",
+     },
+     config = function()
+       require("mason").setup()
+@@ -43,6 +45,18 @@
+         automatic_enable = true,
+       })
+
++      -- Линтеры (nvim-lint) и форматтеры (conform.lua), которые ставятся
++      -- не как LSP-серверы, а как отдельные CLI-инструменты через mason
++      require("mason-tool-installer").setup({
++        ensure_installed = {
++          "hadolint",     -- линтер Dockerfile (lint.lua)
++          "shellcheck",   -- линтер bash/sh (lint.lua)
++          "stylua",       -- форматтер Lua
++          "prettierd",    -- форматтер JS/TS/HTML/CSS
++          "fixjson",      -- форматтер JSON
++        },
++      })
++
+       -- Пробрасываем capabilities от nvim-cmp во все LSP-серверы разом —
+       -- актуальный способ через нативный vim.lsp.config (Neovim 0.11+).
+       vim.lsp.config("*", {
+@@ -67,10 +81,18 @@
+       vim.lsp.config("yamlls", {
+         settings = {
+           yaml = {
+-            schemas = {
+-              ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*.{yml,yaml}",
+-              ["https://json.schemastore.org/docker-compose.json"] = "docker-compose*.{yml,yaml}",
+-            },
++            -- schemastore.nvim знает схемы для docker-compose, GitHub Actions,
++            -- сотен других форматов — вручную прописывать не нужно
++            schemas = require("schemastore").yaml.schemas(),
++          },
++        },
++      })
++
++      vim.lsp.config("jsonls", {
++        settings = {
++          json = {
++            schemas = require("schemastore").json.schemas(),
++            validate = { enable = true },
+           },
+         },
+       })
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/markdown-preview.lua nvim-mycfg/lua/plugins/markdown-preview.lua
+--- nvim-mycfg-orig4/lua/plugins/markdown-preview.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/markdown-preview.lua	2026-07-24 20:45:15.180677306 +0000
+@@ -0,0 +1,14 @@
++return {
++  {
++    "iamcco/markdown-preview.nvim",
++    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
++    ft = { "markdown" },
++    -- Скачивание готового бинарника (mkdp#util#install) не подходит под
++    -- свежие версии Node (нет собранного релиза под них) — собираем
++    -- зависимости из исходников через npm.
++    build = "cd app && npm install",
++    keys = {
++      { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown preview", ft = "markdown" },
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/neovide.lua nvim-mycfg/lua/plugins/neovide.lua
+--- nvim-mycfg-orig4/lua/plugins/neovide.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/neovide.lua	2026-07-24 20:55:16.990146128 +0000
+@@ -0,0 +1,22 @@
++-- Настройки применяются только внутри Neovide (GUI), в терминале
++-- vim.g.neovide не существует и весь блок просто не выполняется.
++if not vim.g.neovide then
++  return {}
++end
++
++vim.g.neovide_cursor_animation_length = 0.08
++vim.g.neovide_cursor_trail_size = 0.5
++vim.g.neovide_cursor_vfx_mode = "railgun" -- варианты: pixiedust, sonicboom, ripple, wireframe, railgun
++
++vim.g.neovide_scroll_animation_length = 0.25
++
++vim.g.neovide_transparency = 0.92
++vim.g.neovide_window_blurred = true
++
++-- Отступы от края окна до текста
++vim.g.neovide_padding_top = 10
++vim.g.neovide_padding_bottom = 10
++vim.g.neovide_padding_left = 12
++vim.g.neovide_padding_right = 12
++
++return {}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/persistence.lua nvim-mycfg/lua/plugins/persistence.lua
+--- nvim-mycfg-orig4/lua/plugins/persistence.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/persistence.lua	2026-07-24 20:33:54.189305409 +0000
+@@ -0,0 +1,12 @@
++return {
++  {
++    "folke/persistence.nvim",
++    event = "BufReadPre",
++    opts = {},
++    keys = {
++      { "<leader>qs", function() require("persistence").load() end, desc = "Сессия: восстановить" },
++      { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "Сессия: последняя" },
++      { "<leader>qd", function() require("persistence").stop() end, desc = "Сессия: не сохранять текущую" },
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/rainbow-and-colors.lua nvim-mycfg/lua/plugins/rainbow-and-colors.lua
+--- nvim-mycfg-orig4/lua/plugins/rainbow-and-colors.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/rainbow-and-colors.lua	2026-07-24 20:55:34.301046426 +0000
+@@ -0,0 +1,28 @@
++return {
++  {
++    "HiPhish/rainbow-delimiters.nvim",
++    event = { "BufReadPost", "BufNewFile" },
++    config = function()
++      require("rainbow-delimiters.setup").setup({
++        highlight = {
++          "RainbowDelimiterRed",
++          "RainbowDelimiterYellow",
++          "RainbowDelimiterBlue",
++          "RainbowDelimiterOrange",
++          "RainbowDelimiterGreen",
++          "RainbowDelimiterViolet",
++          "RainbowDelimiterCyan",
++        },
++      })
++    end,
++  },
++  {
++    "brenoprata10/nvim-highlight-colors",
++    event = { "BufReadPost", "BufNewFile" },
++    opts = {
++      render = "background", -- можно "foreground" или "first_column"
++      enable_named_colors = true,
++      enable_tailwind = true,
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/rest.lua nvim-mycfg/lua/plugins/rest.lua
+--- nvim-mycfg-orig4/lua/plugins/rest.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/rest.lua	2026-07-24 20:33:54.178371814 +0000
+@@ -0,0 +1,15 @@
++return {
++  {
++    "mistweaverco/kulala.nvim",
++    ft = { "http", "rest" },
++    opts = {
++      display_mode = "split", -- ответ в сплите справа
++    },
++    keys = {
++      { "<leader>rr", function() require("kulala").run() end, desc = "REST: выполнить запрос" },
++      { "<leader>rp", function() require("kulala").jump_prev() end, desc = "REST: пред. запрос" },
++      { "<leader>rn", function() require("kulala").jump_next() end, desc = "REST: след. запрос" },
++      { "<leader>rb", function() require("kulala").open() end, desc = "REST: открыть последний ответ" },
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/smear-cursor.lua nvim-mycfg/lua/plugins/smear-cursor.lua
+--- nvim-mycfg-orig4/lua/plugins/smear-cursor.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/smear-cursor.lua	2026-07-24 20:55:34.296887118 +0000
+@@ -0,0 +1,15 @@
++return {
++  {
++    "sphamba/smear-cursor.nvim",
++    -- Только в терминале — в Neovide курсор уже анимируется нативно
++    -- (см. neovide.lua), включать оба одновременно смысла нет.
++    cond = not vim.g.neovide,
++    event = "VeryLazy",
++    opts = {
++      cursor_color = "#c8c093",
++      stiffness = 0.6,
++      trailing_stiffness = 0.3,
++      distance_stop_animating = 0.5,
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/surround.lua nvim-mycfg/lua/plugins/surround.lua
+--- nvim-mycfg-orig4/lua/plugins/surround.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/surround.lua	2026-07-24 20:33:54.182515136 +0000
+@@ -0,0 +1,7 @@
++return {
++  {
++    "kylechui/nvim-surround",
++    event = "VeryLazy",
++    opts = {},
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/tiny-inline-diagnostic.lua nvim-mycfg/lua/plugins/tiny-inline-diagnostic.lua
+--- nvim-mycfg-orig4/lua/plugins/tiny-inline-diagnostic.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/tiny-inline-diagnostic.lua	2026-07-24 20:55:34.302679834 +0000
+@@ -0,0 +1,17 @@
++return {
++  {
++    "rachartier/tiny-inline-diagnostic.nvim",
++    event = "LspAttach",
++    config = function()
++      require("tiny-inline-diagnostic").setup({
++        preset = "modern",
++        options = {
++          show_source = true,
++        },
++      })
++      -- Свой рендер диагностик заменяет стандартный virtual_text от Neovim,
++      -- иначе будет дублирование одной и той же ошибки дважды
++      vim.diagnostic.config({ virtual_text = false })
++    end,
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/todo-comments.lua nvim-mycfg/lua/plugins/todo-comments.lua
+--- nvim-mycfg-orig4/lua/plugins/todo-comments.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/todo-comments.lua	2026-07-24 20:33:54.187196307 +0000
+@@ -0,0 +1,14 @@
++return {
++  {
++    "folke/todo-comments.nvim",
++    dependencies = { "nvim-lua/plenary.nvim" },
++    event = { "BufReadPost", "BufNewFile" },
++    opts = {},
++    keys = {
++      { "<leader>xt", "<cmd>TodoTrouble<cr>", desc = "TODO/FIXME в Trouble" },
++      { "<leader>ft", "<cmd>TodoFzfLua<cr>", desc = "TODO/FIXME через fzf-lua" },
++      { "]t", function() require("todo-comments").jump_next() end, desc = "След. TODO" },
++      { "[t", function() require("todo-comments").jump_prev() end, desc = "Пред. TODO" },
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/venv-selector.lua nvim-mycfg/lua/plugins/venv-selector.lua
+--- nvim-mycfg-orig4/lua/plugins/venv-selector.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/venv-selector.lua	2026-07-24 20:35:18.936231461 +0000
+@@ -0,0 +1,22 @@
++return {
++  {
++    "linux-cultist/venv-selector.nvim",
++    dependencies = {
++      "neovim/nvim-lspconfig",
++      "ibhagwan/fzf-lua",
++      "mfussenegger/nvim-dap-python",
++    },
++    ft = "python",
++    opts = {
++      settings = {
++        options = {
++          picker = "fzf-lua",
++          notify_user_on_venv_activation = true,
++        },
++      },
++    },
++    keys = {
++      { "<leader>cv", "<cmd>VenvSelect<cr>", desc = "Выбрать Python venv", ft = "python" },
++    },
++  },
++}
+diff -ruN '--exclude=.git' nvim-mycfg-orig4/lua/plugins/zen-mode.lua nvim-mycfg/lua/plugins/zen-mode.lua
+--- nvim-mycfg-orig4/lua/plugins/zen-mode.lua	1970-01-01 00:00:00.000000000 +0000
++++ nvim-mycfg/lua/plugins/zen-mode.lua	2026-07-24 20:55:34.309217145 +0000
+@@ -0,0 +1,28 @@
++return {
++  {
++    "folke/zen-mode.nvim",
++    cmd = "ZenMode",
++    keys = {
++      { "<leader>zz", "<cmd>ZenMode<cr>", desc = "Zen mode" },
++    },
++    opts = {
++      window = {
++        width = 0.85,
++        options = {
++          number = false,
++          signcolumn = "no",
++        },
++      },
++      plugins = {
++        twilight = { enabled = true },
++        gitsigns = { enabled = false },
++        tmux = { enabled = false },
++      },
++    },
++  },
++  {
++    "folke/twilight.nvim",
++    cmd = "Twilight",
++    opts = {},
++  },
++}

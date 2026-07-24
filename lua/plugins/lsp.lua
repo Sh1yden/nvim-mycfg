@@ -5,6 +5,8 @@ return {
       "williamboman/mason-lspconfig.nvim",
       "neovim/nvim-lspconfig",
       "hrsh7th/cmp-nvim-lsp",
+      "b0o/schemastore.nvim",
+      "WhoIsSethDaniel/mason-tool-installer.nvim",
     },
     config = function()
       require("mason").setup()
@@ -43,6 +45,18 @@ return {
         automatic_enable = true,
       })
 
+      -- Линтеры (nvim-lint) и форматтеры (conform.lua), которые ставятся
+      -- не как LSP-серверы, а как отдельные CLI-инструменты через mason
+      require("mason-tool-installer").setup({
+        ensure_installed = {
+          "hadolint",     -- линтер Dockerfile (lint.lua)
+          "shellcheck",   -- линтер bash/sh (lint.lua)
+          "stylua",       -- форматтер Lua
+          "prettierd",    -- форматтер JS/TS/HTML/CSS
+          "fixjson",      -- форматтер JSON
+        },
+      })
+
       -- Пробрасываем capabilities от nvim-cmp во все LSP-серверы разом —
       -- актуальный способ через нативный vim.lsp.config (Neovim 0.11+).
       vim.lsp.config("*", {
@@ -67,10 +81,18 @@ return {
       vim.lsp.config("yamlls", {
         settings = {
           yaml = {
-            schemas = {
-              ["https://json.schemastore.org/github-workflow.json"] = ".github/workflows/*.{yml,yaml}",
-              ["https://json.schemastore.org/docker-compose.json"] = "docker-compose*.{yml,yaml}",
-            },
+            -- schemastore.nvim знает схемы для docker-compose, GitHub Actions,
+            -- сотен других форматов — вручную прописывать не нужно
+            schemas = require("schemastore").yaml.schemas(),
+          },
+        },
+      })
+
+      vim.lsp.config("jsonls", {
+        settings = {
+          json = {
+            schemas = require("schemastore").json.schemas(),
+            validate = { enable = true },
           },
         },
       })
