@@ -9,7 +9,7 @@ vim.g.neovide_cursor_trail_size = 0.5
 
 vim.g.neovide_scroll_animation_length = 0.25
 
-vim.g.neovide_opacity = 1
+vim.g.neovide_opacity = 0.73
 vim.g.neovide_window_blurred = true
 
 vim.g.neovide_padding_top = 10
