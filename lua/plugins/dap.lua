@@ -14,11 +14,8 @@ return {
 
       pcall(function()
         require("mason-nvim-dap").setup({
-          automatic_installation = true,
-          -- debugpy отсутствовал — без него require("dap-python").setup("python3")
-          -- ниже не находит адаптер, и отладка Python просто не стартует
-          -- netcoredbg для C# lean: MVS остается для WinForms/тяжелого debug,
-          -- в nvim только быстрый DAP для консольных кусков
+          automatic_installation = false,
+          -- lean: не ставить тяжелые дебаггеры на старте (80-100Мб codelldb/netcoredbg), ставит mason-tool-installer при первом DAP
           ensure_installed = { "codelldb", "debugpy", "netcoredbg" },
         })
       end)

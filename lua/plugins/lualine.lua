@@ -1,22 +1,33 @@
 return {
   {
     "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
-      local function lsp_clients()
+      -- кэш LSP клиентов на LspAttach/Detach чтобы не дергать get_clients каждый рендер lualine
+      local lsp_cache = ""
+      local function update_lsp_cache()
         local clients = {}
         for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
           table.insert(clients, c.name)
         end
-        if #clients == 0 then
-          return ""
-        end
-        return "  " .. table.concat(clients, ", ")
+        lsp_cache = #clients == 0 and "" or "  " .. table.concat(clients, ", ")
+      end
+      vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
+        group = vim.api.nvim_create_augroup("LualineLspCache", { clear = true }),
+        callback = update_lsp_cache,
+      })
+      local function lsp_clients()
+        return lsp_cache
       end
 
       local function dap_status()
         local ok, dap = pcall(require, "dap")
         if not ok then
+          return ""
+        end
+        -- dap.status дорогой, вызываем только в сессии отладки
+        if not dap.session() then
           return ""
         end
         local status = dap.status()

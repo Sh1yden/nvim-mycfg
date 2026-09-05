@@ -13,9 +13,18 @@ return {
         -- дублировать через nvim-lint смысла нет
       }
 
+      local lint_augroup = vim.api.nvim_create_augroup("LintDebounce", { clear = true })
+      local lint_timer = nil
       vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
+        group = lint_augroup,
         callback = function()
-          lint.try_lint()
+          if lint_timer then
+            vim.fn.timer_stop(lint_timer)
+          end
+          lint_timer = vim.fn.timer_start(300, function()
+            lint_timer = nil
+            pcall(lint.try_lint)
+          end)
         end,
       })
     end,
