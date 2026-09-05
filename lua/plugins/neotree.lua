@@ -20,8 +20,10 @@ return {
                         show_hidden_count = true,
                     },
                     follow_current_file = { enabled = true },
-                    use_libuv_file_watcher = true,
-                    group_empty_dirs = true,
+                    -- WSL /mnt/c NTFS: libuv watcher падает на gitignored bin/Debug set_nodes
+                    -- .gitignore не трогаем (BrainNode vault), фикс только тут
+                    use_libuv_file_watcher = false,
+                    group_empty_dirs = false,
                 },
                 git_status = {
                     symbols = {

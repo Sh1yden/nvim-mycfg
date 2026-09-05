@@ -11,7 +11,7 @@ return {
           "python", "c", "cpp", "arduino", "javascript",
           "typescript", "html", "css", "lua", "yaml",
           "toml", "dockerfile", "markdown", "markdown_inline",
-          "json", "go", "sql", "bash",
+          "json", "go", "sql", "bash", "c_sharp",
         },
         auto_install = true,
         highlight = { enable = false },
@@ -23,7 +23,7 @@ return {
           "python", "c", "cpp", "arduino", "javascript",
           "typescript", "html", "css", "lua", "yaml",
           "toml", "dockerfile", "markdown", "json", "go",
-          "sql", "bash",
+          "sql", "bash", "c_sharp", "cs",
         },
         callback = function()
           pcall(vim.treesitter.start)

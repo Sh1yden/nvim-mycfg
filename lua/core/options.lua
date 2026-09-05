@@ -1,3 +1,7 @@
+-- dotnet global tools (EasyDotnet, roslyn-language-server) для easy-dotnet.nvim
+-- WSL Arch: dotnet tool install -g кладет в ~/.dotnet/tools, но nvim PATH без него -> E475 dotnet-easydotnet not executable
+vim.env.PATH = vim.fn.expand("~/.dotnet/tools") .. ":" .. vim.env.PATH
+
 -- Aliases
 local opt = vim.opt
 

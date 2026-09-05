@@ -47,6 +47,8 @@ return {
 
       -- Линтеры (nvim-lint) и форматтеры (conform.lua), которые ставятся
       -- не как LSP-серверы, а как отдельные CLI-инструменты через mason
+      -- roslyn не добавляем: для C# LSP ставит easy-dotnet через dotnet tool (roslyn-language-server),
+      -- дублирование в mason-lspconfig даст конфликт двух серверов
       require("mason-tool-installer").setup({
         ensure_installed = {
           "hadolint",     -- линтер Dockerfile (lint.lua)
@@ -54,6 +56,8 @@ return {
           "stylua",       -- форматтер Lua
           "prettierd",    -- форматтер JS/TS/HTML/CSS
           "fixjson",      -- форматтер JSON
+          "csharpier",    -- форматтер C# (conform.lua: cs -> csharpier)
+          "netcoredbg",   -- дебаггер C# (dap.lua + easy-dotnet)
         },
       })
 

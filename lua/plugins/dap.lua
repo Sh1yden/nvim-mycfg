@@ -17,8 +17,40 @@ return {
           automatic_installation = true,
           -- debugpy отсутствовал — без него require("dap-python").setup("python3")
           -- ниже не находит адаптер, и отладка Python просто не стартует
-          ensure_installed = { "codelldb", "debugpy" },
+          -- netcoredbg для C# lean: MVS остается для WinForms/тяжелого debug,
+          -- в nvim только быстрый DAP для консольных кусков
+          ensure_installed = { "codelldb", "debugpy", "netcoredbg" },
         })
+      end)
+
+      -- C# DAP lean: easy-dotnet сам резолвит dll/launchSettings.json,
+      -- но оставляем fallback адаптер netcoredbg для ручного запуска
+      -- (MVS Parallel Stacks/Diagnostic Tools - для сложных кейсов)
+      pcall(function()
+        local dap_cs = require("dap")
+        if not dap_cs.adapters.coreclr and not dap_cs.adapters.netcoredbg then
+          local netcoredbg = vim.fn.exepath("netcoredbg")
+          if netcoredbg ~= "" then
+            dap_cs.adapters.coreclr = {
+              type = "executable",
+              command = netcoredbg,
+              args = { "--interpreter=vscode" },
+            }
+            dap_cs.adapters.netcoredbg = dap_cs.adapters.coreclr
+          end
+        end
+        if not dap_cs.configurations.cs then
+          dap_cs.configurations.cs = {
+            {
+              type = "coreclr",
+              name = "launch - netcoredbg",
+              request = "launch",
+              program = function()
+                return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/bin/Debug/", "file")
+              end,
+            },
+          }
+        end
       end)
 
       pcall(require("nvim-dap-virtual-text").setup)

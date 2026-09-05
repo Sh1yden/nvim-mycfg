@@ -21,6 +21,8 @@ return {
           toml = { "taplo" },
           markdown = { "markdownlint" },
           dockerfile = { "dockerfmt" },
+          cs = { "csharpier" },
+          c_sharp = { "csharpier" },
           ["_"] = { "trim_whitespace" },
         },
         format_on_save = {
@@ -32,6 +34,17 @@ return {
         },
         notify_on_error = true,
       })
+
+      -- Патч csharpier empty output на WSL пути с пробелами "Test VS Code Projects"
+      -- mason csharpier 1.2.6 требует --write-stdout при --stdin-path, иначе пустой stdout
+      -- .gitignore не трогаем, другие проекты не трогаем
+      pcall(function()
+        require("conform").formatters.csharpier = {
+          command = "csharpier",
+          args = { "format", "--write-stdout", "--stdin-path", "$FILENAME" },
+          stdin = true,
+        }
+      end)
     end,
   },
 }
