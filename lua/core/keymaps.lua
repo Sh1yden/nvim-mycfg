@@ -99,11 +99,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end,
 })
 
--- Fzf search
-keymap.set("n", "<leader>ff", "<cmd>FzfLua files<CR>", { silent = true, desc = "Find files" })
-keymap.set("n", "<leader>fg", "<cmd>FzfLua live_grep<CR>", { silent = true, desc = "Grep project" })
-keymap.set("n", "<leader>fb", "<cmd>FzfLua buffers<CR>", { silent = true, desc = "Find buffers" })
-
 -- NeoVide (Windows GUI)
 if vim.g.neovide then
     vim.keymap.set("v", "<C-c>", '"+y', { silent = true, desc = "Copy" })
@@ -111,11 +106,6 @@ if vim.g.neovide then
     vim.keymap.set({ "i", "c" }, "<C-v>", '<C-r>+', { silent = true, desc = "Paste" })
     vim.keymap.set("n", "<C-q>", "<C-v>", { silent = true, desc = "Visual block mode" })
 end
-
--- Trouble diagnostics
-keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", { silent = true, desc = "Project diagnostics" })
-keymap.set("n", "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
-    { silent = true, desc = "Buffer diagnostics" })
 
 -- Git
 keymap.set("n", "<leader>g", "<cmd>LazyGit<CR>", { silent = true, desc = "Open LazyGit" })

@@ -6,6 +6,8 @@ local parsers = {
   "typescript", "html", "css", "lua", "yaml",
   "toml", "dockerfile", "markdown", "markdown_inline",
   "json", "go", "sql", "bash", "c_sharp",
+  -- rest.nvim (README для lazy.nvim: парсер ставится через nvim-treesitter)
+  "http",
 }
 
 return {

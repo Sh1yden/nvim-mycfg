@@ -11,7 +11,7 @@ return {
         hide_numbers = true,
         shade_terminals = true,
         start_in_insert = true,
-        insert_mappings = true,
+        insert_mappings = false, -- не перекрывать <C-Space> из nvim-cmp в insert-режиме
         terminal_mappings = true,
         direction = "horizontal",
         close_on_exit = true,

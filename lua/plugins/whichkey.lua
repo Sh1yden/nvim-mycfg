@@ -15,9 +15,8 @@ return {
           separator = "➜",
           group = "",
         },
-        win = { border = "rounded" },
+        win = { border = "rounded", height = { min = 4, max = 25 } },
         layout = {
-          height = { min = 4, max = 25 },
           width = { min = 20, max = 50 },
           spacing = 3,
         },

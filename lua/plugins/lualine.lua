@@ -13,7 +13,7 @@ return {
         end
         lsp_cache = #clients == 0 and "" or "  " .. table.concat(clients, ", ")
       end
-      vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
+      vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach", "BufEnter" }, {
         group = vim.api.nvim_create_augroup("LualineLspCache", { clear = true }),
         callback = update_lsp_cache,
       })
@@ -59,7 +59,7 @@ return {
           lualine_x = {
             { dap_status, color = { fg = "#e46876" } }, -- красным, чтобы бросалось в глаза при отладке
             { "diagnostics", sources = { "nvim_lsp" } },
-            { lsp_clients, icon = "" },
+            { lsp_clients },
             { "filetype", icon_only = true },
           },
           lualine_y = { "progress" },

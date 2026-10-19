@@ -1,6 +1,7 @@
-local swapdir = vim.fn.expand("~/.local/share/nvim/swap//")
+local swapdir = vim.fn.stdpath("state") .. "/swap"
 vim.fn.mkdir(swapdir, "p")
-vim.opt.directory = swapdir
+-- "//" в конце: имя swap-файла строится из полного пути файла (без коллизий одноимённых)
+vim.opt.directory = swapdir .. "//"
 
 require("core.options")
 require("core.keymaps")

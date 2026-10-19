@@ -16,7 +16,7 @@ return {
         require("mason-nvim-dap").setup({
           automatic_installation = false,
           -- lean: не ставить тяжелые дебаггеры на старте (80-100Мб codelldb/netcoredbg), ставит mason-tool-installer при первом DAP
-          ensure_installed = { "codelldb", "debugpy", "netcoredbg" },
+          ensure_installed = { "codelldb", "netcoredbg" },
         })
       end)
 
@@ -74,6 +74,8 @@ return {
         },
       })
 
+      -- debugpy берем системный (pacman: python-debugpy), а не mason —
+      -- см. README nvim-dap-python; mason-адаптер debugpy не используется.
       require("dap-python").setup("python3")
 
       dap.listeners.after.event_initialized["dapui_config"] = dapui.open

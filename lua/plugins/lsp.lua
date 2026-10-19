@@ -58,6 +58,11 @@ return {
           "fixjson",      -- форматтер JSON
           "csharpier",    -- форматтер C# (conform.lua: cs -> csharpier)
           "netcoredbg",   -- дебаггер C# (dap.lua + easy-dotnet)
+          "gofumpt",      -- форматтер Go (conform.lua: go)
+          "goimports",    -- форматтер Go: сортировка/добавление импортов
+          "yamlfmt",      -- форматтер YAML (conform.lua: yaml)
+          "markdownlint", -- форматтер Markdown (conform.lua: markdown)
+          "dockerfmt",    -- форматтер Dockerfile (conform.lua: dockerfile)
         },
       })
 
