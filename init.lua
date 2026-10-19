@@ -1,5 +1,3 @@
-vim.opt.runtimepath:prepend(vim.fn.stdpath("data") .. "/lazy/nvim-treesitter")
-
 local swapdir = vim.fn.expand("~/.local/share/nvim/swap//")
 vim.fn.mkdir(swapdir, "p")
 vim.opt.directory = swapdir
